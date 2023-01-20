@@ -8,17 +8,25 @@ class TextWidget extends StatelessWidget {
 	final String path;
   const TextWidget ({super.key, required this.path});
 
-  String getFileText(String path) => Uri.dataFromString(
-		"<pre> ${File(path).readAsStringSync()} </pre>",
-		mimeType: "text/html",
-	).toString();
+  Future<String> getFileText(String path) async => Uri.dataFromString(
+			"<pre> ${File(path).readAsStringSync()} </pre>",
+			mimeType: "text/html",
+		).toString();
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: WebviewScaffold(
-        url: getFileText(path),
-        withZoom: true,
+      child: FutureBuilder<String>(
+				future: getFileText(path),	
+        builder: (context, path) {
+					if(path.hasData && path.data != null) {
+						return WebviewScaffold(
+							url: path.data!,
+							withZoom: true,
+						);
+					}
+					return const SizedBox();
+        }
       ),
     );
   }

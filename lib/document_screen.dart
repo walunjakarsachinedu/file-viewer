@@ -8,15 +8,24 @@ class DocumentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return openDocument(path);
+    return path!=null ? documentScreen(path!) : emptyScreen();
   }
 
-	Widget openDocument(String? filePath) {
-		if(filePath == null) return Center(child: Text("no file: $filePath"));
+	Widget documentScreen(String filePath) {
     return Scaffold(
       body: filePath.endsWith(".pdf")
 				? PdfWidget(path: filePath)
 				: TextWidget(path: filePath),
     );
   }
+
+	Widget emptyScreen() =>const Scaffold(
+		body: Center(
+			child: Text(
+				"No File Selected",
+				style: TextStyle(fontSize: 16),
+			),
+		),
+	); 
+
 }

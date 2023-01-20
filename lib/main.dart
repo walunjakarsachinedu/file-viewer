@@ -29,6 +29,7 @@ class _MyAppState extends State<MyApp> {
 		if(intent.action == "android.intent.action.VIEW") _pdfFilePath = intent.data;
 		if(intent.action == "android.intent.action.SEND") _pdfFilePath = intent.extra?["android.intent.extra.STREAM"];
 		if(_pdfFilePath != null) _pdfFilePath = await UriToFilePath.getAbsolutePath(_pdfFilePath!);
+		setState(() {});
 	}
 
 	Future<void> _initReceiveIntent() async {
@@ -41,16 +42,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.black));
 		Permission.storage.request();
-		// set status color to black
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.black,
-    ));
 
-    // For receiving intent coming from outside the app while the app is in the memory
     _intentData = ReceiveIntent.receivedIntentStream.listen(handleIntent);
-
-		// For receiving intent coming from outside the app while the app is closed
 		_initReceiveIntent();
 	}
 
@@ -65,7 +61,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
 			debugShowCheckedModeBanner: false,
-      home: DocumentScreen(path: _pdfFilePath, key: UniqueKey(),),
+      home: DocumentScreen(path: _pdfFilePath, key: UniqueKey()),
     );
   }
 }

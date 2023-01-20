@@ -1,12 +1,12 @@
 
 import 'package:flutter/material.dart' hide Intent;
 import 'package:flutter/services.dart';
-import 'package:pdf/pdf_screen.dart';
-import 'package:pdf/text_screen.dart';
+import 'package:pdf/document_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:receive_intent/receive_intent.dart';
 import 'dart:async';
 
+import 'package:uri_to_file_path/uri_to_file_path.dart';
 
 
 
@@ -24,31 +24,36 @@ class _MyAppState extends State<MyApp> {
   late StreamSubscription _intentData;
   String? _pdfFilePath;
 
-	void handleSharingIntent(List<SharedMediaFile> files) {
-		if(files.isEmpty) return;
-		_pdfFilePath = files[0].path;
-		setState(() {});
+	void handleIntent(Intent? intent) async {
+		if(intent == null) return;
+		if(intent.action == "android.intent.action.VIEW") _pdfFilePath = intent.data;
+		if(intent.action == "android.intent.action.SEND") _pdfFilePath = intent.extra?["android.intent.extra.STREAM"];
+		if(_pdfFilePath != null) _pdfFilePath = await UriToFilePath.getAbsolutePath(_pdfFilePath!);
 	}
-	 
-	void handleTextIntent(String? uri) {
-		if(uri == null) return;
-		_pdfFilePath = Uri.parse(uri).path;
-		setState(() {});
+
+	Future<void> _initReceiveIntent() async {
+		try {
+			final intent = await ReceiveIntent.getInitialIntent();
+			handleIntent(intent);
+		} on PlatformException {print("platform error occurs");}
 	}
 
   @override
   void initState() {
     super.initState();
 		Permission.storage.request();
+		// set status color to black
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.black,
+    ));
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    // For receiving intent coming from outside the app while the app is in the memory
+    _intentData = ReceiveIntent.receivedIntentStream.listen(handleIntent);
 
-		ReceiveSharingIntent.getInitialMedia().then(handleSharingIntent);
-		ReceiveSharingIntent.getMediaStream().listen(handleSharingIntent);
-
-		ReceiveSharingIntent.getInitialText().then(handleTextIntent);
-		ReceiveSharingIntent.getTextStream();
+		// For receiving intent coming from outside the app while the app is closed
+		_initReceiveIntent();
 	}
+
 
   @override
   void dispose() {
@@ -60,17 +65,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
 			debugShowCheckedModeBanner: false,
-      home: Scaffold(
-				// appBar: AppBar(title: Text(_pdfFilePath ?? "null", style: const TextStyle(fontSize: 8),)),
-        body: openDocument(_pdfFilePath),
-      ),
+      home: DocumentScreen(path: _pdfFilePath, key: UniqueKey(),),
     );
-  }
-
-	Widget openDocument(String? filePath) {
-		if(filePath == null) return Center(child: Text("no file: $filePath"));
-    return filePath.endsWith(".pdf")
-        ? PdfWidget(path: filePath)
-        : TextWidget(path: filePath);
   }
 }

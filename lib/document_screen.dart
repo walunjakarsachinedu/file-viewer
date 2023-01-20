@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf_screen.dart';
 import 'package:pdf/text_screen.dart';
 
-class DocumentScreen extends StatelessWidget {
+class DocumentScreen extends StatefulWidget {
 	final String? path;
   const DocumentScreen({super.key, required this.path});
 
   @override
+  State<DocumentScreen> createState() => _DocumentScreenState();
+}
+
+class _DocumentScreenState extends State<DocumentScreen> {
+
+  @override
   Widget build(BuildContext context) {
-    return path!=null ? documentScreen(path!) : emptyScreen();
+		return widget.path!=null ? documentScreen(widget.path!) : emptyScreen();
   }
 
 	Widget documentScreen(String filePath) {

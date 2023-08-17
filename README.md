@@ -1,4 +1,4 @@
-# pdf
+# file-viewer
 
 A new Flutter project.
 
